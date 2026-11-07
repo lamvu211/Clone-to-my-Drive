@@ -1,0 +1,13 @@
+{
+  "name": "clone-to-my-drive",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "node scripts/verify.mjs",
+    "test": "node scripts/verify.mjs",
+    "build:icons": "node scripts/build-icons.mjs",
+    "setup:extension-key": "node scripts/setup-extension-key.mjs --write-manifest",
+    "package:store": "node scripts/package-store.mjs"
+  }
+}

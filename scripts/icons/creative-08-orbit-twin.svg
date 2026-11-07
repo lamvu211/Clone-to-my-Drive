@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="c08_ring" x1="20" y1="64" x2="108" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0b8043"/>
+      <stop offset="50%" stop-color="#4285f4"/>
+      <stop offset="100%" stop-color="#f9ab00"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#202124"/>
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#3c4043" stroke-width="3"/>
+  <ellipse cx="64" cy="64" rx="46" ry="26" fill="none" stroke="url(#c08_ring)" stroke-width="4" opacity="0.85" transform="rotate(-24 64 64)"/>
+  <rect x="50" y="48" width="28" height="36" rx="5" fill="#fff"/>
+  <path d="M50 58h28" stroke="#e8eaed" stroke-width="3"/>
+  <path d="M55 66h18M55 72h14" stroke="#5f6368" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+  <rect x="22" y="22" width="22" height="28" rx="4" fill="#34a853" opacity="0.95" transform="rotate(-12 33 36)"/>
+  <path d="M26 30h14" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+  <rect x="84" y="78" width="22" height="28" rx="4" fill="#f9ab00" opacity="0.95" transform="rotate(8 95 92)"/>
+  <path d="M88 86h14" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+</svg>

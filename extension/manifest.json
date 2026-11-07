@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Clone to My Drive",
+  "version": "1.0.0",
+  "description": "Clone the current Google Drive file or folder into your saved destination folder.",
+  "action": {
+    "default_title": "Clone to My Drive",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "identity",
+    "storage",
+    "tabs",
+    "system.display"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*"
+  ],
+  "oauth2": {
+    "client_id": "774523235096-5ptemq5ismm6aseagpkekfc4s6d596ns.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxGdPopDZTRYlHuLHNY39KjJ3SoimVgN9lNIb/E4z66j3IOYswpxKci8MWto9seWxBM0m5QnJCnHEDMwtbvLQR1ucnCIUGgQLxsjF/zZ30xs4CWmPc3sx97IDH/AcURsSYPwzXWM7rW2b+/uCJLMiu5RRA9xAuVKqEhfaduulk21IcMcQR94zyrZ+Xo650tdn8YYZsPB05CPbiMgsHEnjEzoDwjiqfKquAUCUyqgxPG9EXGqIkAjirD0QAY/BfzIdHGOmshoTavtMrYvbUmKXZvpt//z14FO/TZLjZyD9rcoOZBKl/1SwbgeW5jnRwTWqn4eAUif8A8spNQwI+DmlhQIDAQAB"
+}

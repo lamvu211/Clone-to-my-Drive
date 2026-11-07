@@ -1,0 +1,24 @@
+# Reference / dev-only (not shipped with extension)
+_ref/
+
+# Dependencies & build output
+node_modules/
+dist/
+
+# Private keys (manifest.key is the public half in manifest.json)
+secrets/
+
+# Internal dev docs (not needed on GitHub or in Store ZIP)
+ATTEMPT_LOG.md
+PASS_CONDITIONS.md
+RULES.md
+CHROMEWEBSTORE.md
+docs/SETUP_NHA_PHAT_HANH.md
+docs/HUONG_DAN_UPLOAD_STORE.md
+docs/OAUTH_NHA_PHAT_HANH.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

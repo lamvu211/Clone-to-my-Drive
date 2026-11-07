@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clone to My Drive</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1 id="appTitle" class="title">Clone to MyDrive</h1>
+      <label class="lang-wrap">
+        <select id="langSelect" aria-label="Language">
+          <option value="en">English</option>
+          <option value="vi">Tiếng Việt</option>
+        </select>
+      </label>
+    </header>
+
+    <section class="dest">
+      <label class="dest-row dest-row-inline">
+        <input type="radio" name="destMode" id="destDefault" value="default" checked />
+        <strong id="lblDestDefault">Default</strong>
+        <span id="hintDestDefault" class="hint hint-inline"></span>
+      </label>
+      <div class="dest-row dest-row-inline dest-row-custom">
+        <label class="dest-custom-label">
+          <input type="radio" name="destMode" id="destCustom" value="custom" />
+          <strong id="lblDestCustom">Clone to folder</strong>
+        </label>
+        <input
+          id="destFolderLink"
+          class="dest-link dest-link-inline"
+          type="url"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+    </section>
+
+    <div class="dup-row">
+      <span id="lblDuplicate" class="dup-label"></span>
+      <label class="inline">
+        <input type="radio" name="dupMode" value="rewrite" checked />
+        <span id="lblDupOverwrite"></span>
+      </label>
+      <label class="inline">
+        <input type="radio" name="dupMode" value="skip" />
+        <span id="lblDupSkip"></span>
+      </label>
+    </div>
+
+    <div id="listWrap" class="list-wrap" role="region" aria-live="polite">
+      <p id="emptyList" class="empty"></p>
+      <table id="itemTable" class="item-table" hidden>
+        <thead>
+          <tr>
+            <th class="col-check">
+              <input type="checkbox" id="selectAllCheck" aria-label="Select all" />
+            </th>
+            <th id="thName"></th>
+            <th id="thType"></th>
+          </tr>
+        </thead>
+        <tbody id="itemBody"></tbody>
+      </table>
+    </div>
+
+    <footer class="foot">
+      <div class="action-row">
+        <button id="copyBtn" type="button">Copy</button>
+        <p id="status" class="status" aria-live="polite"></p>
+        <div class="progress-wrap">
+          <div
+            id="progressTrack"
+            class="progress-track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <span id="progressPct" class="progress-pct">—%</span>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
