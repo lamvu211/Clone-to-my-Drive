@@ -31,6 +31,6 @@ npm run package:store   # → dist/*.zip for Chrome Web Store
 npm run build:icons
 ```
 
-Privacy policy (OAuth / Store): **[docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md)** · Contact: **lamvu211@gmail.com**
+Privacy policy: **[docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md)** (source) · Public site (OAuth / Store): **https://lamvu211.github.io/Clone-to-my-Drive/privacy.html** after [GitHub Pages is enabled](docs/GITHUB_PAGES_OAUTH.md) · Contact: **lamvu211@gmail.com**
 
 Load unpacked: `chrome://extensions` → Developer mode → **Load unpacked** → select the `extension/` folder.

@@ -79,10 +79,10 @@ test('manifest ships store OAuth fields', () => {
   assert.ok(typeof manifest.key === 'string' && manifest.key.length > 0);
 });
 
-test('store package script keeps manifest.key', () => {
+test('store package script strips manifest.key', () => {
   const script = fs.readFileSync(
     path.join(__dirname, '../scripts/package-store.mjs'),
     'utf8'
   );
-  assert.doesNotMatch(script, /delete manifest\.key/);
+  assert.match(script, /delete manifest\.key/);
 });

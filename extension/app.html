@@ -9,12 +9,15 @@
   <body>
     <header class="top">
       <h1 id="appTitle" class="title">Clone to MyDrive</h1>
-      <label class="lang-wrap">
-        <select id="langSelect" aria-label="Language">
-          <option value="en">English</option>
-          <option value="vi">Tiếng Việt</option>
-        </select>
-      </label>
+      <div class="top-actions">
+        <button id="signInBtn" type="button" class="sign-in-btn">Sign in</button>
+        <label class="lang-wrap">
+          <select id="langSelect" aria-label="Language">
+            <option value="en">English</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </label>
+      </div>
     </header>
 
     <section class="dest">
@@ -59,7 +62,7 @@
               <input type="checkbox" id="selectAllCheck" aria-label="Select all" />
             </th>
             <th id="thName"></th>
-            <th id="thType"></th>
+            <th id="thType" class="col-type"></th>
           </tr>
         </thead>
         <tbody id="itemBody"></tbody>

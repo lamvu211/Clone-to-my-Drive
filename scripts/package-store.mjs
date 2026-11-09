@@ -1,7 +1,6 @@
 /**
  * Build a Chrome Web Store upload ZIP from extension/.
- * Keeps manifest.key so Extension ID matches the OAuth "Chrome extension" client
- * (one client_id in manifest for all Store users; each user signs into their own Google account).
+ * Strips manifest.key because Chrome Web Store forbids the "key" field in uploaded packages.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,6 +55,16 @@ function copyExtensionToStaging() {
     fs.copyFileSync(src, dest);
   });
 
+  // Chrome Web Store disallows "key" in manifest.json
+  const stagingManifestPath = path.join(stagingDir, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(stagingManifestPath, 'utf8'));
+  if (manifest.key) {
+    delete manifest.key;
+    fs.writeFileSync(
+      stagingManifestPath,
+      `${JSON.stringify(manifest, null, 2)}\n`
+    );
+  }
 }
 
 function zipStaging(outZip) {
@@ -105,5 +114,5 @@ zipStaging(outZip);
 
 console.log(`Store package: ${outZip}`);
 console.log(
-  'Includes oauth2.client_id + manifest.key — verify Extension ID on CWS matches your OAuth client Application ID.'
+  'manifest.key was removed as required by Chrome Web Store. Once uploaded, check your Extension ID on CWS dashboard and configure it in Google Cloud Console OAuth client.'
 );

@@ -8,6 +8,10 @@
     "test": "node scripts/verify.mjs",
     "build:icons": "node scripts/build-icons.mjs",
     "setup:extension-key": "node scripts/setup-extension-key.mjs --write-manifest",
+    "sync:store-key": "node scripts/sync-store-manifest-key.mjs",
     "package:store": "node scripts/package-store.mjs"
+  },
+  "devDependencies": {
+    "crx3-utils": "^0.0.3"
   }
 }

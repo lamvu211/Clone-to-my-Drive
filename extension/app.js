@@ -1,4 +1,8 @@
-import { ensureGoogleSignIn } from './lib/authPopup.js';
+import { ensureGoogleSignIn, getAccessToken } from './lib/authPopup.js';
+import {
+  isOAuthClientConfigured,
+  oauthNotConfiguredMessageForUser,
+} from './lib/oauthConfig.js';
 import { t } from './lib/i18n.js';
 import {
   STORAGE_KEY_DEST_MODE,
@@ -14,6 +18,7 @@ const sourceTabId = Number.parseInt(params.get('sourceTabId') || '', 10);
 
 const els = {
   langSelect: document.getElementById('langSelect'),
+  signInBtn: document.getElementById('signInBtn'),
   destDefault: document.getElementById('destDefault'),
   destCustom: document.getElementById('destCustom'),
   destFolderLink: document.getElementById('destFolderLink'),
@@ -38,6 +43,9 @@ let loadedItems = [];
 /** @type {{ kind: 'folder', folderId: string, folderName?: string } | { kind: 'file' } | null} */
 let listingInfo = null;
 
+/** @type {'notSignedIn' | 'waiting' | 'loading' | null} */
+let emptyListKey = 'waiting';
+
 /**
  * @param {string} text
  */
@@ -59,6 +67,111 @@ function setProgress(pct) {
   els.progressPct.textContent = `${n}%`;
   els.progressFill.style.width = `${n}%`;
   els.progressTrack.setAttribute('aria-valuenow', String(n));
+}
+
+/**
+ * @param {'notSignedIn' | 'waiting' | 'loading'} key
+ */
+function setEmptyListMessage(key) {
+  emptyListKey = key;
+  if (els.emptyList.hidden) {
+    return;
+  }
+  const i18nKey =
+    key === 'loading'
+      ? 'statusLoading'
+      : key === 'notSignedIn'
+        ? 'emptyListNotSignedIn'
+        : 'emptyListWaiting';
+  els.emptyList.textContent = t(locale, i18nKey);
+}
+
+/**
+ * @param {boolean} visible
+ */
+function setSignInVisible(visible) {
+  if (!isOAuthClientConfigured()) {
+    els.signInBtn.hidden = true;
+    return;
+  }
+  els.signInBtn.hidden = !visible;
+}
+
+/**
+ * @param {boolean} signedIn
+ */
+function setSignedInState(signedIn) {
+  setSignInVisible(!signedIn);
+}
+
+/**
+ * @param {unknown} err
+ */
+function isOAuthMisconfigError(err) {
+  const msg = String(/** @type {Error} */ (err)?.message || err);
+  return (
+    msg.includes('Cannot connect to Google Drive') ||
+    msg.includes('Không kết nối được Google Drive')
+  );
+}
+
+/**
+ * @param {unknown} err
+ */
+function handleAuthError(err) {
+  if (isOAuthMisconfigError(err)) {
+    setSignInVisible(false);
+    setStatus(oauthNotConfiguredMessageForUser());
+    setEmptyListMessage('waiting');
+    return;
+  }
+  setSignedInState(false);
+  setStatus(t(locale, 'statusNeedSignIn'));
+  setEmptyListMessage('notSignedIn');
+}
+
+/**
+ * @returns {Promise<boolean>}
+ */
+async function probeCachedSignIn() {
+  if (!isOAuthClientConfigured()) {
+    setSignInVisible(false);
+    return false;
+  }
+  try {
+    await getAccessToken(false);
+    setSignedInState(true);
+    return true;
+  } catch {
+    setSignedInState(false);
+    return false;
+  }
+}
+
+/**
+ * @returns {Promise<boolean>}
+ */
+async function runSignInFlow() {
+  if (!isOAuthClientConfigured()) {
+    setSignInVisible(false);
+    setStatus(oauthNotConfiguredMessageForUser());
+    return false;
+  }
+  els.signInBtn.disabled = true;
+  els.signInBtn.textContent = t(locale, 'signingIn');
+  try {
+    await ensureGoogleSignIn({ allowInteractive: true });
+    setSignedInState(true);
+    return true;
+  } catch (err) {
+    handleAuthError(err);
+    return false;
+  } finally {
+    els.signInBtn.disabled = false;
+    if (!els.signInBtn.hidden) {
+      els.signInBtn.textContent = t(locale, 'btnSignIn');
+    }
+  }
 }
 
 function syncSelectAllHeader() {
@@ -103,10 +216,17 @@ function applyI18n() {
   document.getElementById('lblDupOverwrite').textContent = t(locale, 'duplicateOverwrite');
   document.getElementById('lblDupSkip').textContent = t(locale, 'duplicateSkip');
   els.copyBtn.textContent = t(locale, 'btnCopy');
+  if (!els.signInBtn.hidden) {
+    els.signInBtn.textContent = els.signInBtn.disabled
+      ? t(locale, 'signingIn')
+      : t(locale, 'btnSignIn');
+  }
   document.getElementById('thName').textContent = t(locale, 'colName');
   document.getElementById('thType').textContent = t(locale, 'colType');
-  if (!loadedItems.length && els.emptyList.hidden === false) {
-    els.emptyList.textContent = t(locale, 'emptyList');
+  if (!loadedItems.length && !els.emptyList.hidden && emptyListKey) {
+    setEmptyListMessage(emptyListKey);
+  } else if (!loadedItems.length && !els.emptyList.hidden && !emptyListKey) {
+    els.emptyList.textContent = t(locale, 'statusNoItems');
   }
   els.langSelect.options[0].textContent = t(locale, 'langEn');
   els.langSelect.options[1].textContent = t(locale, 'langVi');
@@ -169,12 +289,14 @@ function renderList(items, opts = {}) {
   if (!items.length) {
     els.itemTable.hidden = true;
     els.emptyList.hidden = false;
+    emptyListKey = null;
     els.emptyList.textContent = t(locale, 'statusNoItems');
     syncSelectAllHeader();
     return;
   }
   els.emptyList.hidden = true;
   els.itemTable.hidden = false;
+  emptyListKey = null;
   for (const item of items) {
     const tr = document.createElement('tr');
     const tdChk = document.createElement('td');
@@ -193,6 +315,7 @@ function renderList(items, opts = {}) {
       syncSelectAllHeader();
     });
     const tdType = document.createElement('td');
+    tdType.className = 'col-type';
     tdType.textContent = item.isFolder ? t(locale, 'typeFolder') : t(locale, 'typeFile');
     tr.append(tdChk, tdName, tdType);
     els.itemBody.appendChild(tr);
@@ -215,23 +338,39 @@ function connectPort() {
  * Auto-load list from the Drive tab when the window opens.
  */
 async function autoLoadTabItems() {
-  if (!sourceTabId) {
-    setStatus(t(locale, 'statusNeedDriveTab'));
-    renderList([], { selectAll: false });
+  if (!isOAuthClientConfigured()) {
+    setSignInVisible(false);
+    setStatus(oauthNotConfiguredMessageForUser());
+    els.emptyList.hidden = false;
+    els.itemTable.hidden = true;
+    loadedItems = [];
+    setEmptyListMessage('waiting');
     return;
   }
+
+  if (!sourceTabId) {
+    await probeCachedSignIn();
+    setStatus(t(locale, 'statusNeedDriveTab'));
+    els.itemTable.hidden = true;
+    els.emptyList.hidden = false;
+    loadedItems = [];
+    syncSelectAllHeader();
+    setEmptyListMessage('waiting');
+    return;
+  }
+
   els.emptyList.hidden = false;
   els.itemTable.hidden = true;
-  els.emptyList.textContent = t(locale, 'statusLoading');
+  setEmptyListMessage('loading');
   setStatus('');
 
   const port = connectPort();
   try {
     try {
       await ensureGoogleSignIn({ allowInteractive: true });
-    } catch {
-      setStatus(t(locale, 'statusNeedSignIn'));
-      els.emptyList.textContent = t(locale, 'emptyList');
+      setSignedInState(true);
+    } catch (err) {
+      handleAuthError(err);
       return;
     }
     await new Promise((resolve) => {
@@ -244,10 +383,15 @@ async function autoLoadTabItems() {
         if (!msg.ok) {
           if (msg.code === 'NOT_DRIVE') {
             setStatus(t(locale, 'statusNeedDriveTab'));
+            setEmptyListMessage('waiting');
           } else {
             setStatus(msg.error || t(locale, 'statusNeedDriveTab'));
+            setEmptyListMessage('waiting');
           }
-          renderList([], { selectAll: false });
+          els.itemTable.hidden = true;
+          els.emptyList.hidden = false;
+          loadedItems = [];
+          syncSelectAllHeader();
           resolve();
           return;
         }
@@ -258,12 +402,19 @@ async function autoLoadTabItems() {
       });
     });
   } catch (err) {
-    setStatus(String(err.message || err));
+    setStatus(String(/** @type {Error} */ (err).message || err));
   }
 }
 
 async function init() {
   await loadPrefs();
+
+  els.signInBtn.addEventListener('click', async () => {
+    const ok = await runSignInFlow();
+    if (ok) {
+      await autoLoadTabItems();
+    }
+  });
 
   els.langSelect.addEventListener('change', async () => {
     locale = els.langSelect.value === 'en' ? 'en' : 'vi';
@@ -343,8 +494,9 @@ async function init() {
     const port = connectPort();
     try {
       await ensureGoogleSignIn({ allowInteractive: true });
-    } catch {
-      setStatus(t(locale, 'statusNeedSignIn'));
+      setSignedInState(true);
+    } catch (err) {
+      handleAuthError(err);
       els.copyBtn.disabled = false;
       setProgress(null);
       return;
@@ -407,6 +559,12 @@ async function init() {
       },
     });
   });
+
+  if (isOAuthClientConfigured()) {
+    await probeCachedSignIn();
+  } else {
+    setSignInVisible(false);
+  }
 
   await autoLoadTabItems();
 }

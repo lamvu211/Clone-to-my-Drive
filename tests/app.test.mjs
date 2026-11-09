@@ -10,6 +10,8 @@ const html = fs.readFileSync(path.join(__dirname, '../extension/app.html'), 'utf
 test('app UI contract', () => {
   assert.match(html, /id="destFolderLink"/);
   assert.match(html, /id="copyBtn"/);
+  assert.match(html, /id="signInBtn"/);
+  assert.match(html, /class="col-type"/);
   assert.doesNotMatch(html, /id="loadBtn"/);
   assert.match(html, /id="progressFill"/);
   assert.match(html, /id="langSelect"/);
@@ -17,9 +19,10 @@ test('app UI contract', () => {
   assert.match(html, /id="selectAllCheck"/);
 });
 
-test('app triggers OAuth from Load/Copy flow', () => {
+test('app triggers OAuth from sign-in, load, and copy flow', () => {
   const appJs = fs.readFileSync(path.join(__dirname, '../extension/app.js'), 'utf8');
   assert.match(appJs, /ensureGoogleSignIn/);
+  assert.match(appJs, /runSignInFlow/);
   assert.match(appJs, /chrome\.runtime\.connect/);
 });
 

@@ -38,6 +38,26 @@ body {
   font-weight: 600;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sign-in-btn {
+  padding: 5px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #1a73e8;
+  background: #fff;
+  color: #1a73e8;
+}
+
+.sign-in-btn:hover:not(:disabled) {
+  background: #e8f0fe;
+}
+
 .lang-wrap select {
   font-size: 13px;
   padding: 4px 8px;
@@ -177,6 +197,14 @@ body {
 .col-check {
   width: 40px;
   text-align: center;
+}
+
+.item-table th.col-type,
+.item-table td.col-type {
+  width: 5.75rem;
+  min-width: 5.75rem;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .foot {

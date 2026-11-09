@@ -5,7 +5,7 @@ import { extractDriveResourceId, isGoogleDriveUrl } from './driveIds.js';
  */
 
 /**
- * Resolve what to list when user clicks Load on the active tab URL.
+ * Resolve what to list from the active tab URL when the app window opens.
  * @param {string|null|undefined} pageUrl
  * @returns {ListingContext}
  */

@@ -4,6 +4,7 @@ _ref/
 # Dependencies & build output
 node_modules/
 dist/
+Screenshots/
 
 # Private keys (manifest.key is the public half in manifest.json)
 secrets/
