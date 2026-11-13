@@ -32,6 +32,7 @@ const els = {
   itemBody: document.getElementById('itemBody'),
   selectAllCheck: document.getElementById('selectAllCheck'),
   thName: document.getElementById('thName'),
+  manualLink: document.getElementById('manualLink'),
 };
 
 /** @type {Locale} */
@@ -208,6 +209,10 @@ function toggleAllRowsSelection() {
 
 function applyI18n() {
   document.getElementById('appTitle').textContent = t(locale, 'title');
+  if (els.manualLink) {
+    els.manualLink.textContent = t(locale, 'btnManual');
+    els.manualLink.setAttribute('aria-label', t(locale, 'btnManual'));
+  }
   document.getElementById('lblDestDefault').textContent = t(locale, 'destDefault');
   document.getElementById('hintDestDefault').textContent = t(locale, 'destDefaultHint');
   document.getElementById('lblDestCustom').textContent = t(locale, 'destCustom');

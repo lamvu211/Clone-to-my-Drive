@@ -15,6 +15,7 @@ test('app UI contract', () => {
   assert.doesNotMatch(html, /id="loadBtn"/);
   assert.match(html, /id="progressFill"/);
   assert.match(html, /id="langSelect"/);
+  assert.match(html, /id="manualLink"/);
   assert.match(html, /name="destMode"/);
   assert.match(html, /id="selectAllCheck"/);
 });
