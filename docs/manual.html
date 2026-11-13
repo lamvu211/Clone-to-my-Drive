@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hướng dẫn — Clone to My Drive</title>
+    <style>
+      :root {
+        --text: #1f1f1f;
+        --muted: #5f6368;
+        --border: #dadce0;
+        --accent: #1967d2;
+        --vi-bg: #f8f9fa;
+        --en-bg: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.35;
+        color: var(--text);
+        margin: 0;
+        background: #eef1f4;
+      }
+      .wrap {
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0.75rem 0.5rem 1rem;
+      }
+      header {
+        margin-bottom: 0.65rem;
+        text-align: center;
+      }
+      h1 {
+        font-size: 1.15rem;
+        margin: 0 0 0.15rem;
+      }
+      .sub {
+        margin: 0;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .sub a {
+        color: var(--accent);
+      }
+      .steps-scroll {
+        margin-bottom: 0.5rem;
+      }
+      .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        grid-template-rows: auto 1fr 1fr;
+        gap: 0.35rem;
+        width: 100%;
+      }
+      .step-box {
+        display: grid;
+        grid-row: span 3;
+        grid-template-rows: subgrid;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+      }
+      .step-num {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-align: center;
+        padding: 0.2rem 0.35rem;
+        background: #e8f0fe;
+        color: #174ea6;
+        border-bottom: 1px solid var(--border);
+      }
+      .step-vi,
+      .step-en {
+        padding: 0.35rem 0.4rem;
+        font-size: calc(0.68rem + 2px);
+      }
+      .step-vi {
+        background: var(--vi-bg);
+        border-bottom: 1px solid var(--border);
+      }
+      .step-en {
+        background: var(--en-bg);
+        color: #3c4043;
+      }
+      .step-vi ul,
+      .step-en ul {
+        margin: 0.25rem 0 0;
+        padding-left: 0.95rem;
+      }
+      .step-vi li,
+      .step-en li {
+        margin: 0.15rem 0;
+      }
+      .pictures-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin: 0.35rem 0 0.3rem;
+        text-align: center;
+      }
+      .pictures-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.35rem;
+        width: 100%;
+      }
+      .pic-btn {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0;
+        background: #fff;
+        cursor: zoom-in;
+        overflow: hidden;
+        aspect-ratio: 16 / 10;
+        display: block;
+        width: 100%;
+      }
+      .pic-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        background: #f1f3f4;
+      }
+      .pic-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .lightbox {
+        border: none;
+        padding: 0;
+        max-width: min(96vw, 56rem);
+        width: max-content;
+        background: transparent;
+      }
+      .lightbox::backdrop {
+        background: rgba(32, 33, 36, 0.72);
+      }
+      .lightbox-inner {
+        position: relative;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+      }
+      .lightbox img {
+        display: block;
+        max-width: min(96vw, 56rem);
+        max-height: 88vh;
+        width: auto;
+        height: auto;
+      }
+      .lightbox-hint {
+        margin: 0;
+        padding: 0.35rem 0.5rem;
+        font-size: 0.78rem;
+        text-align: center;
+        color: var(--muted);
+        background: #f8f9fa;
+        border-top: 1px solid var(--border);
+      }
+      .lightbox-close {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.4rem;
+        border: none;
+        border-radius: 999px;
+        width: 2rem;
+        height: 2rem;
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.92);
+        color: #3c4043;
+      }
+      footer {
+        margin-top: 0.65rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-align: center;
+      }
+      footer a {
+        color: var(--accent);
+      }
+      @media (max-width: 900px) {
+        .steps-grid {
+          grid-template-columns: repeat(10, minmax(7rem, 1fr));
+          overflow-x: auto;
+        }
+        .step-vi,
+        .step-en {
+          font-size: calc(0.72rem + 2px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Clone to My Drive — Hướng dẫn</h1>
+        <p class="sub">
+          <a href="index.html">← Home</a> · <a href="privacy.html">Privacy</a>
+        </p>
+      </header>
+
+      <div class="steps-scroll" aria-label="Các bước thực hiện">
+        <div class="steps-grid">
+          <article class="step-box">
+            <div class="step-num">1</div>
+            <div class="step-vi" lang="vi">
+              Mở link Google Drive mà bạn được share (có thể là files/folders…).
+            </div>
+            <div class="step-en" lang="en">
+              Open the Google Drive link shared with you (files, folders, etc.).
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">2</div>
+            <div class="step-vi" lang="vi">
+              Bật extension bằng cách bấm vào icon extension. Cửa sổ extension sẽ hiện ra.
+            </div>
+            <div class="step-en" lang="en">
+              Click the extension icon on the toolbar. The extension window opens.
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">3</div>
+            <div class="step-vi" lang="vi">
+              Đăng nhập và cho phép extension truy cập Google Drive.
+            </div>
+            <div class="step-en" lang="en">
+              Sign in and allow the extension to access Google Drive.
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">4</div>
+            <div class="step-vi" lang="vi">
+              Đợi extension tải toàn bộ danh sách trong link được share.
+            </div>
+            <div class="step-en" lang="en">
+              Wait until the extension loads the full list from that link.
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">5</div>
+            <div class="step-vi" lang="vi">
+              Chọn thư mục đích:
+              <ul>
+                <li>
+                  <strong>Default:</strong> File/folder lưu vào <em>DriveClone</em> trên My Drive
+                  (tự tạo nếu chưa có).
+                </li>
+                <li>
+                  <strong>Clone to folder:</strong> Tạo folder trên My Drive, copy link và dán tại
+                  đây — copy thẳng vào folder đó.
+                </li>
+              </ul>
+            </div>
+            <div class="step-en" lang="en">
+              Choose destination:
+              <ul>
+                <li>
+                  <strong>Default:</strong> Saves to <em>DriveClone</em> on My Drive (created
+                  automatically if missing).
+                </li>
+                <li>
+                  <strong>Clone to folder:</strong> Paste your folder URL — copies go directly
+                  there.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">6</div>
+            <div class="step-vi" lang="vi">
+              Chọn Ghi đè hoặc Bỏ qua:
+              <ul>
+                <li><strong>Ghi đè:</strong> Ghi đè file trùng tên trong cùng folder đích.</li>
+                <li>
+                  <strong>Bỏ qua:</strong> File trùng tên đã có ở đích sẽ không copy thêm.
+                </li>
+              </ul>
+            </div>
+            <div class="step-en" lang="en">
+              Choose Overwrite or Skip:
+              <ul>
+                <li><strong>Overwrite:</strong> Replaces same-name files at the destination.</li>
+                <li><strong>Skip:</strong> Leaves existing same-name files unchanged.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">7</div>
+            <div class="step-vi" lang="vi">
+              Bỏ tick mục không copy; bấm tiêu đề cột <strong>Tên</strong> để chọn / bỏ chọn tất
+              cả.
+            </div>
+            <div class="step-en" lang="en">
+              Uncheck items to exclude; click the <strong>Name</strong> header to select or clear
+              all.
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">8</div>
+            <div class="step-vi" lang="vi">
+              Bấm <strong>Copy</strong>. Theo dõi thanh tiến độ đến khi xong.
+            </div>
+            <div class="step-en" lang="en">
+              Click <strong>Copy</strong>. Watch the progress bar until it finishes.
+            </div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">9</div>
+            <div class="step-vi" lang="vi">Mở folder đích trên Drive để kiểm tra kết quả.</div>
+            <div class="step-en" lang="en">Open the destination folder on Drive and verify the copies.</div>
+          </article>
+
+          <article class="step-box">
+            <div class="step-num">10</div>
+            <div class="step-vi" lang="vi">
+              Danh sách trống hoặc sai tab? Đóng cửa sổ, mở đúng tab Drive, bấm icon lại, hoặc bấm
+              đăng nhập để kết nối lại My Drive.
+            </div>
+            <div class="step-en" lang="en">
+              Empty list or wrong tab? Close the window, open the correct Drive tab, click the icon
+              again, or sign in to reconnect My Drive.
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <p class="pictures-label">Ảnh minh họa · Screenshots (bước 1–6)</p>
+      <div class="pictures-grid" id="pictures-grid" aria-label="Ảnh theo thứ tự bước"></div>
+
+      <dialog class="lightbox" id="lightbox" tabindex="-1" aria-label="Ảnh phóng to">
+        <div class="lightbox-inner">
+          <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Đóng">×</button>
+          <img id="lightbox-img" alt="" />
+          <p class="lightbox-hint" id="lightbox-hint" hidden>← → chuyển ảnh</p>
+        </div>
+      </dialog>
+
+      <footer>
+        <a href="mailto:lamvu211@gmail.com">lamvu211@gmail.com</a>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        const STEP_COUNT = 6;
+        const grid = document.getElementById('pictures-grid');
+        const dialog = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        const closeBtn = document.getElementById('lightbox-close');
+        const hint = document.getElementById('lightbox-hint');
+        let currentStep = 1;
+
+        function stepFile(n) {
+          return 'images/manual/step-' + String(n).padStart(2, '0') + '.png';
+        }
+
+        function showStep(n) {
+          currentStep = Math.max(1, Math.min(STEP_COUNT, n));
+          img.src = stepFile(currentStep);
+          img.alt = 'Bước ' + currentStep;
+          dialog.setAttribute('aria-label', 'Ảnh bước ' + currentStep);
+        }
+
+        function openLightbox(n) {
+          showStep(n);
+          hint.hidden = false;
+          dialog.showModal();
+          dialog.focus();
+        }
+
+        for (let n = 1; n <= STEP_COUNT; n += 1) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'pic-btn';
+          btn.title = 'Bước ' + n + ' — phóng to';
+          const thumb = document.createElement('img');
+          thumb.src = stepFile(n);
+          thumb.alt = 'Bước ' + n;
+          thumb.loading = 'lazy';
+          btn.appendChild(thumb);
+          btn.addEventListener('click', function () {
+            openLightbox(n);
+          });
+          grid.appendChild(btn);
+        }
+
+        function closeLightbox() {
+          dialog.close();
+          img.removeAttribute('src');
+          hint.hidden = true;
+        }
+
+        function onLightboxKey(e) {
+          if (!dialog.open) return;
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            if (currentStep > 1) showStep(currentStep - 1);
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            if (currentStep < STEP_COUNT) showStep(currentStep + 1);
+          }
+        }
+
+        closeBtn.addEventListener('click', closeLightbox);
+        dialog.addEventListener('click', function (e) {
+          if (e.target === dialog) closeLightbox();
+        });
+        dialog.addEventListener('cancel', function () {
+          img.removeAttribute('src');
+          hint.hidden = true;
+        });
+        dialog.addEventListener('keydown', onLightboxKey);
+      })();
+    </script>
+  </body>
+</html>
