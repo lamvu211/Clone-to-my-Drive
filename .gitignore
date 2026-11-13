@@ -1,6 +1,9 @@
 # Reference / dev-only (not shipped with extension)
 _ref/
 
+# Stray duplicate of extension/manifest.json (never ship from repo root)
+/manifest.json
+
 # Dependencies & build output
 node_modules/
 dist/
