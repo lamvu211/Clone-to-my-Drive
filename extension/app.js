@@ -4,6 +4,7 @@ import {
   oauthNotConfiguredMessageForUser,
 } from './lib/oauthConfig.js';
 import { t } from './lib/i18n.js';
+import { listViewportHeightPx, visibleListRows } from './lib/listViewport.js';
 import {
   STORAGE_KEY_DEST_MODE,
   STORAGE_KEY_DUPLICATE_MODE,
@@ -27,12 +28,14 @@ const els = {
   progressFill: document.getElementById('progressFill'),
   progressTrack: document.getElementById('progressTrack'),
   status: document.getElementById('status'),
+  listWrap: document.getElementById('listWrap'),
   emptyList: document.getElementById('emptyList'),
   itemTable: document.getElementById('itemTable'),
   itemBody: document.getElementById('itemBody'),
   selectAllCheck: document.getElementById('selectAllCheck'),
   thName: document.getElementById('thName'),
   manualLink: document.getElementById('manualLink'),
+  foot: document.querySelector('.foot'),
 };
 
 /** @type {Locale} */
@@ -46,6 +49,14 @@ let listingInfo = null;
 
 /** @type {'notSignedIn' | 'waiting' | 'loading' | null} */
 let emptyListKey = 'waiting';
+
+/** @type {number | null} */
+let cachedListRowHeightPx = null;
+
+/** Fallback row height until the table has been measured (px). */
+const LIST_ROW_HEIGHT_FALLBACK = 34;
+
+const APP_WINDOW_WIDTH = 720;
 
 /**
  * @param {string} text
@@ -85,6 +96,222 @@ function setEmptyListMessage(key) {
         ? 'emptyListNotSignedIn'
         : 'emptyListWaiting';
   els.emptyList.textContent = t(locale, i18nKey);
+  syncListViewport(loadedItems.length);
+}
+
+function measureListRowHeightPx() {
+  const row = document.querySelector('#itemBody tr');
+  if (row) {
+    const h = row.offsetHeight;
+    if (h > 0) {
+      cachedListRowHeightPx = h;
+      return h;
+    }
+  }
+  const headRow = document.querySelector('.item-table thead tr');
+  if (headRow) {
+    const h = headRow.offsetHeight;
+    if (h > 0) {
+      cachedListRowHeightPx = h;
+      return h;
+    }
+  }
+  return cachedListRowHeightPx ?? LIST_ROW_HEIGHT_FALLBACK;
+}
+
+function measureListHeaderHeightPx() {
+  const headRow = document.querySelector('.item-table thead tr');
+  if (headRow && !els.itemTable.hidden) {
+    const h = headRow.offsetHeight;
+    if (h > 0) {
+      return h;
+    }
+  }
+  return measureListRowHeightPx();
+}
+
+function applyListRowMetrics() {
+  const rowH = measureListRowHeightPx();
+  const headerH = measureListHeaderHeightPx();
+  if (rowH > 0) {
+    document.documentElement.style.setProperty('--list-data-row-px', `${rowH}px`);
+  }
+  if (headerH > 0) {
+    document.documentElement.style.setProperty('--list-head-row-px', `${headerH}px`);
+  }
+}
+
+function listWrapBorderPaddingPx() {
+  const cs = getComputedStyle(els.listWrap);
+  return (
+    parseFloat(cs.borderTopWidth) +
+    parseFloat(cs.borderBottomWidth) +
+    parseFloat(cs.paddingTop) +
+    parseFloat(cs.paddingBottom)
+  );
+}
+
+/** @param {number} clientAreaPx visible scroll port (exact header + N data rows, or N rows empty) */
+function setListViewportHeightPx(clientAreaPx) {
+  const extra = listWrapBorderPaddingPx();
+  const outer = Math.max(0, Math.round(clientAreaPx + extra));
+  const h = `${outer}px`;
+  els.listWrap.style.height = h;
+  els.listWrap.style.minHeight = h;
+  els.listWrap.style.maxHeight = h;
+}
+
+function measureWindowFrameChromePx() {
+  if (typeof window.outerHeight !== 'number' || typeof window.innerHeight !== 'number') {
+    return 0;
+  }
+  return Math.max(0, window.outerHeight - window.innerHeight);
+}
+
+function measureContentScrollHeightPx() {
+  return Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight
+  );
+}
+
+function targetOuterWindowHeightPx() {
+  return Math.round(measureWindowFrameChromePx() + measureContentScrollHeightPx());
+}
+
+function syncFooterInset() {
+  const foot = els.foot;
+  if (!foot) {
+    return;
+  }
+  const h = foot.offsetHeight;
+  if (h > 0) {
+    document.body.style.paddingBottom = `${h}px`;
+    document.documentElement.style.setProperty('--foot-height', `${h}px`);
+  }
+}
+
+function bindFooterInsetObserver() {
+  const foot = els.foot;
+  if (!foot || typeof ResizeObserver === 'undefined') {
+    return;
+  }
+  const ro = new ResizeObserver(() => {
+    syncFooterInset();
+    updateWindowBounds(targetOuterWindowHeightPx());
+  });
+  ro.observe(foot);
+}
+
+/**
+ * @param {number} targetHeight
+ */
+function updateWindowBounds(targetHeight) {
+  chrome.system.display.getInfo((displays) => {
+    const primary = displays?.find((d) => d.isPrimary) || displays?.[0];
+    const work = primary?.workArea;
+    chrome.windows.getCurrent((win) => {
+      if (chrome.runtime.lastError || win?.id == null) {
+        return;
+      }
+      const width = typeof win.width === 'number' ? win.width : APP_WINDOW_WIDTH;
+      const height = Math.round(targetHeight);
+      /** @type {chrome.windows.UpdateInfo} */
+      const update = { height };
+      if (work && work.height > 0 && work.width > 0) {
+        let top = Math.round(work.top + (work.height - height) / 2);
+        const maxTop = work.top + work.height - height;
+        top = Math.max(work.top, Math.min(top, maxTop));
+        let left =
+          typeof win.left === 'number'
+            ? win.left
+            : Math.round(work.left + (work.width - width) / 2);
+        const maxLeft = work.left + work.width - width;
+        left = Math.max(work.left, Math.min(left, maxLeft));
+        update.top = top;
+        update.left = left;
+      }
+      const current = win.height;
+      const topMatch =
+        update.top == null || (typeof win.top === 'number' && Math.abs(win.top - update.top) <= 2);
+      if (typeof current === 'number' && Math.abs(current - height) <= 2 && topMatch) {
+        return;
+      }
+      chrome.windows.update(win.id, update);
+    });
+  });
+}
+
+function bindListRowWheelScroll() {
+  els.listWrap.addEventListener(
+    'wheel',
+    (e) => {
+      if (els.itemTable.hidden) {
+        return;
+      }
+      const rowH = measureListRowHeightPx();
+      if (rowH <= 0) {
+        return;
+      }
+      const maxScroll = els.listWrap.scrollHeight - els.listWrap.clientHeight;
+      if (maxScroll <= 0) {
+        return;
+      }
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0;
+      if (dir === 0) {
+        return;
+      }
+      const next = Math.max(0, Math.min(els.listWrap.scrollTop + dir * rowH, maxScroll));
+      els.listWrap.scrollTop = next;
+    },
+    { passive: false }
+  );
+}
+
+/**
+ * Grow list + popup height for more rows (default 6, max 20). Does not fight manual resize until
+ * the next load/render.
+ * @param {number} itemCount
+ */
+function syncListViewport(itemCount) {
+  if (!els.listWrap) {
+    return;
+  }
+  const visible = visibleListRows(itemCount);
+  const hasTable = !els.itemTable.hidden;
+
+  const applyLayout = () => {
+    applyListRowMetrics();
+    const rowH = measureListRowHeightPx();
+    const headerH = hasTable ? measureListHeaderHeightPx() : rowH;
+    const clientH = listViewportHeightPx(visible, rowH, {
+      headerHeightPx: headerH,
+      hasTable,
+    });
+    setListViewportHeightPx(clientH);
+
+    requestAnimationFrame(() => {
+      applyListRowMetrics();
+      const rowH2 = measureListRowHeightPx();
+      const headerH2 = hasTable ? measureListHeaderHeightPx() : rowH2;
+      const clientH2 = listViewportHeightPx(visible, rowH2, {
+        headerHeightPx: headerH2,
+        hasTable,
+      });
+      setListViewportHeightPx(clientH2);
+
+      const clientNow = els.listWrap.clientHeight;
+      if (Math.abs(clientNow - clientH2) > 1) {
+        setListViewportHeightPx(clientH2 + (clientH2 - clientNow));
+      }
+
+      syncFooterInset();
+      updateWindowBounds(targetOuterWindowHeightPx());
+    });
+  };
+
+  requestAnimationFrame(applyLayout);
 }
 
 /**
@@ -297,6 +524,7 @@ function renderList(items, opts = {}) {
     emptyListKey = null;
     els.emptyList.textContent = t(locale, 'statusNoItems');
     syncSelectAllHeader();
+    syncListViewport(0);
     return;
   }
   els.emptyList.hidden = true;
@@ -327,6 +555,7 @@ function renderList(items, opts = {}) {
   }
   els.selectAllCheck.checked = selectAll;
   els.selectAllCheck.indeterminate = false;
+  syncListViewport(items.length);
 }
 
 function getSelectedIds() {
@@ -413,6 +642,10 @@ async function autoLoadTabItems() {
 
 async function init() {
   await loadPrefs();
+  syncFooterInset();
+  bindFooterInsetObserver();
+  bindListRowWheelScroll();
+  syncListViewport(0);
 
   els.signInBtn.addEventListener('click', async () => {
     const ok = await runSignInFlow();

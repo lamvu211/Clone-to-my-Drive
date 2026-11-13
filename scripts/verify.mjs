@@ -14,6 +14,7 @@ const checks = [
   { name: 'driveCopier', cmd: 'node --test tests/driveCopier.test.mjs' },
   { name: 'manifest', cmd: 'node --test tests/manifest.test.mjs' },
   { name: 'app', cmd: 'node --test tests/app.test.mjs' },
+  { name: 'listViewport', cmd: 'node --test tests/listViewport.test.mjs' },
   { name: 'tabListing', cmd: 'node --test tests/tabListing.test.mjs' },
   { name: 'copyWrap', cmd: 'node --test tests/copyWrap.test.mjs' },
   { name: 'storageContract', cmd: 'node --test tests/storageContract.test.mjs' },

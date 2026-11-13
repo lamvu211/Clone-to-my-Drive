@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Clone to My Drive",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Clone the current Google Drive file or folder into your saved destination folder.",
   "action": {
     "default_title": "Clone to My Drive",

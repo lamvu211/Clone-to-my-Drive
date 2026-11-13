@@ -8,9 +8,11 @@ import {
   shouldUseSourceFolderWrap,
 } from './lib/copyWrap.js';
 
+import { APP_WINDOW_HEIGHT_DEFAULT } from './lib/listViewport.js';
+
 const APP_URL = 'app.html';
 const APP_WIDTH = 720;
-const APP_HEIGHT = 520;
+const APP_HEIGHT = APP_WINDOW_HEIGHT_DEFAULT;
 const SESSION_KEY_APP_WINDOW = 'appWindowId';
 
 /**
